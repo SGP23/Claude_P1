@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+.venv_gpu/
+venv/
+
+# PyTorch models (large binary files)
+*.pt
+*.pth
+
+# Training data
+*.npz
+data/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/*.json
+
+# Node (frontend has its own .gitignore)
+node_modules/
