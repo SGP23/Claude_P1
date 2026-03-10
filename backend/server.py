@@ -38,6 +38,12 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 from models.landmark_model import LandmarkClassifier, extract_landmark_features
+from backend.models.disambiguation import GeometricDisambiguator
+from backend.word_prediction import WordPredictor
+
+# ─── Disambiguation & Word Prediction ────────────────────
+DISAMBIGUATOR = GeometricDisambiguator()
+WORD_PREDICTOR = WordPredictor()
 
 # ─── Socket.IO Server (created early so logger can reference it) ──
 sio = socketio.AsyncServer(
@@ -512,8 +518,17 @@ def predict_from_frame(
     predicted_idx = quality["top1_idx"]
     predicted_label = CLASS_NAMES[predicted_idx] if predicted_idx < len(CLASS_NAMES) else CLASS_NAMES[0]
     
+    # Apply geometric disambiguation to refine confused letters
+    landmarks_np = np.array([(lm.x, lm.y, lm.z) for lm in hand])
+    refined_label, was_corrected = DISAMBIGUATOR.disambiguate(
+        predicted_label, quality["top1_conf"], landmarks_np
+    )
+    if was_corrected:
+        metadata["info"] = f"DISAMBIGUATED: {predicted_label} → {refined_label}"
+        predicted_label = refined_label
+    
     # Add informational note about confidence level
-    if quality["confidence_level"] == "low":
+    if quality["confidence_level"] == "low" and not was_corrected:
         metadata["info"] = f"LOW_CONFIDENCE: {quality['top1_conf']:.3f}"
     
     return predicted_label, quality["top1_conf"], metadata
@@ -626,6 +641,11 @@ fastapi_app.add_middleware(
     allow_headers=["*"],
 )
 
+# ─── Include additional API routes ───────────────────────
+from backend.api.routes import router as api_router
+
+fastapi_app.include_router(api_router)
+
 
 # ─── REST Endpoints ──────────────────────────────────────
 @fastapi_app.get("/")
@@ -645,6 +665,9 @@ async def root():
             "/logs",
             "/predict",
             "/speak",
+            "/suggest-words",
+            "/complete-word",
+            "/groups",
         ],
     }
 

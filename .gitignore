@@ -8,17 +8,27 @@ build/
 *.egg
 
 # Virtual environments
+venv/
 .venv/
 .venv_gpu/
-venv/
+*.pyc
 
-# PyTorch models (large binary files)
+# Models (large files - use Git LFS if needed)
 *.pt
 *.pth
+*.h5
+*.hdf5
 
 # Training data
 *.npz
 data/
+
+# MediaPipe task files
+*.task
+
+# Node
+node_modules/
+npm-debug.log
 
 # IDE
 .vscode/
@@ -29,12 +39,19 @@ data/
 *.sln
 *.sw?
 
+# Environment
+.env
+.env.local
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+logs/
+*.log
+
 # OS
 .DS_Store
 Thumbs.db
-
-# Logs
-logs/*.json
-
-# Node (frontend has its own .gitignore)
-node_modules/

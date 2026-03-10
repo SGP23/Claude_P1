@@ -29,25 +29,35 @@ export async function postSpeak(text) {
   return data
 }
 
-// ─── Available but not currently used by the UI ─────────
-// Uncomment when implementing the corresponding features.
+export async function getSuggestions(sentence, maxSuggestions = 4) {
+  const { data } = await api.post('/suggest-words', {
+    sentence,
+    max_suggestions: maxSuggestions,
+  })
+  return data
+}
 
-// export async function getHealth() {
-//   const { data } = await api.get('/health')
-//   return data
-// }
+export async function completeWord(sentence, suggestion) {
+  const { data } = await api.post('/complete-word', { sentence, suggestion })
+  return data
+}
 
-// export async function postPredict(file) {
-//   const formData = new FormData()
-//   formData.append('file', file)
-//   const { data } = await api.post('/predict', formData)
-//   return data
-// }
+export async function getHealth() {
+  const { data } = await api.get('/health')
+  return data
+}
 
-// export async function getTrainingStatus() {
-//   const { data } = await api.get('/training-status')
-//   return data
-// }
+export async function postPredict(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  const { data } = await api.post('/predict', formData)
+  return data
+}
+
+export async function getTrainingStatus() {
+  const { data } = await api.get('/training-status')
+  return data
+}
 
 // export async function startTraining(config = {}) {
 //   const { data } = await api.post('/start-training', config)

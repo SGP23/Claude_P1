@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Camera, Sliders, Sun, Moon, Save } from 'lucide-react'
+import { Camera, Sliders, Save } from 'lucide-react'
 import GradientCard from '../components/GradientCard'
 
 export default function Settings() {
   const [devices, setDevices] = useState([])
   const [selectedDevice, setSelectedDevice] = useState('')
   const [threshold, setThreshold] = useState(0.4)
-  const [darkMode, setDarkMode] = useState(
-    document.documentElement.classList.contains('dark')
-  )
   const [saved, setSaved] = useState(false)
 
   // Enumerate cameras
@@ -37,20 +34,12 @@ export default function Settings() {
     enumerate()
   }, [])
 
-  const toggleDarkMode = () => {
-    const next = !darkMode
-    setDarkMode(next)
-    document.documentElement.classList.toggle('dark', next)
-    window.dispatchEvent(new Event('darkmode-changed'))
-  }
-
   const saveSettings = () => {
     localStorage.setItem(
       'slr_settings',
       JSON.stringify({
         deviceId: selectedDevice,
         threshold,
-        darkMode,
       })
     )
     setSaved(true)
@@ -128,41 +117,6 @@ export default function Settings() {
           <span className="w-16 text-center text-sm font-bold text-[#334eac] bg-[#334eac]/10 rounded-lg py-1">
             {(threshold * 100).toFixed(0)}%
           </span>
-        </div>
-      </GradientCard>
-
-      {/* Theme toggle */}
-      <GradientCard className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#334eac] to-[#7096d1] flex items-center justify-center">
-              {darkMode ? (
-                <Moon size={18} className="text-white" />
-              ) : (
-                <Sun size={18} className="text-white" />
-              )}
-            </div>
-            <div>
-              <h3 className="font-semibold text-[#081f5c] dark:text-white">
-                Dark Mode
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Toggle between light and dark theme
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={toggleDarkMode}
-            className={`relative w-14 h-7 rounded-full transition-colors ${
-              darkMode ? 'bg-[#334eac]' : 'bg-gray-300'
-            }`}
-          >
-            <motion.div
-              className="absolute top-0.5 w-6 h-6 bg-white rounded-full shadow-md"
-              animate={{ left: darkMode ? 30 : 2 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            />
-          </button>
         </div>
       </GradientCard>
 

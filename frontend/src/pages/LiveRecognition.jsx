@@ -3,9 +3,10 @@ import { motion } from 'framer-motion'
 import { Trash2, Volume2, Camera, CameraOff } from 'lucide-react'
 import WebcamPreview from '../components/WebcamPreview'
 import PredictionDisplay from '../components/PredictionDisplay'
+import WordSuggestions from '../components/WordSuggestions'
 import GradientCard from '../components/GradientCard'
 import { getSocket, disconnectSocket } from '../services/websocket'
-import { postSpeak } from '../services/api'
+import { postSpeak, getSuggestions } from '../services/api'
 
 export default function LiveRecognition() {
   const [isActive, setIsActive] = useState(true)
@@ -17,9 +18,11 @@ export default function LiveRecognition() {
   const [connected, setConnected] = useState(false)
   const [threshold, setThreshold] = useState(0.4)
   const [landmarks, setLandmarks] = useState(null) // Hand landmarks for visualization
+  const [suggestions, setSuggestions] = useState(['', '', '', ''])
   const lastLetterRef = useRef(null)
   const lastLetterTimeRef = useRef(0)
   const socketRef = useRef(null)
+  const suggestTimerRef = useRef(null)
 
   // Load settings from localStorage on mount
   const savedSettings = useMemo(() => {
@@ -134,6 +137,36 @@ export default function LiveRecognition() {
     lastLetterRef.current = null
   }
 
+  // Fetch word suggestions when word changes
+  useEffect(() => {
+    if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current)
+    const fullText = sentence + (word ? (sentence ? ' ' : '') + word : '')
+    if (!word) {
+      setSuggestions(['', '', '', ''])
+      return
+    }
+    suggestTimerRef.current = setTimeout(async () => {
+      try {
+        const result = await getSuggestions(fullText)
+        setSuggestions(result.suggestions || ['', '', '', ''])
+      } catch {
+        setSuggestions(['', '', '', ''])
+      }
+    }, 300)
+    return () => {
+      if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current)
+    }
+  }, [word, sentence])
+
+  const handleSuggestionSelect = (suggestion) => {
+    if (!suggestion) return
+    // Replace the current word with the suggestion
+    setWord('')
+    setSentence((prev) => (prev ? prev + ' ' + suggestion : suggestion))
+    setSuggestions(['', '', '', ''])
+    lastLetterRef.current = null
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Connection indicator */}
@@ -202,6 +235,9 @@ export default function LiveRecognition() {
               <Trash2 size={14} /> Clear All
             </button>
           </div>
+
+          {/* Word Suggestions */}
+          <WordSuggestions suggestions={suggestions} onSelect={handleSuggestionSelect} />
         </GradientCard>
       </div>
 

@@ -23,44 +23,10 @@ const navItems = [
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [darkMode, setDarkMode] = useState(() => {
-    // Initialize from localStorage or current DOM state
-    try {
-      const saved = localStorage.getItem('slr_settings')
-      if (saved) return JSON.parse(saved).darkMode ?? false
-    } catch { /* ignore */ }
-    return document.documentElement.classList.contains('dark')
-  })
   const location = useLocation()
 
-  // Sync dark mode class on mount and when it changes
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode)
-  }, [darkMode])
-
-  // Listen for dark mode changes from Settings page
-  useEffect(() => {
-    const handler = () => {
-      setDarkMode(document.documentElement.classList.contains('dark'))
-    }
-    window.addEventListener('darkmode-changed', handler)
-    return () => window.removeEventListener('darkmode-changed', handler)
-  }, [])
-
-  const toggleDark = () => {
-    const next = !darkMode
-    setDarkMode(next)
-    // Persist to localStorage
-    try {
-      const saved = JSON.parse(localStorage.getItem('slr_settings') || '{}')
-      saved.darkMode = next
-      localStorage.setItem('slr_settings', JSON.stringify(saved))
-    } catch { /* ignore */ }
-    window.dispatchEvent(new Event('darkmode-changed'))
-  }
-
   return (
-    <div className={`flex h-screen ${darkMode ? 'dark' : ''}`}>
+    <div className="flex h-screen">
       {/* Sidebar */}
       <AnimatePresence mode="wait">
         <motion.aside
@@ -138,13 +104,6 @@ export default function DashboardLayout() {
           </div>
           <div className="flex items-center gap-4">
             <ModelStatusBadge />
-            <button
-              onClick={toggleDark}
-              className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600 transition"
-              title="Toggle theme"
-            >
-              {darkMode ? '☀️' : '🌙'}
-            </button>
           </div>
         </header>
 
