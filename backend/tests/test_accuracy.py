@@ -23,7 +23,7 @@ import numpy as np
 def test_accuracy_with_images():
     """Test accuracy against labeled image directories."""
     import cv2
-    from backend.prediction_engine import PredictionEngine
+    from backend.prediction.realtime_prediction_engine import PredictionEngine
 
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     test_dir = os.path.join(project_root, "test_data")

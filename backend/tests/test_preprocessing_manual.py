@@ -15,7 +15,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 import cv2
 import numpy as np
-from backend.preprocessing import SkeletonPreprocessor, HAND_CONNECTIONS, CANVAS_SIZE
+from backend.tracking.hand_skeleton_preprocessor import (
+    SkeletonPreprocessor,
+    HAND_CONNECTIONS,
+    CANVAS_SIZE,
+)
 
 
 def test_skeleton_visual():

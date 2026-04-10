@@ -100,7 +100,7 @@ def benchmark_disambiguation():
 
 def benchmark_word_prediction():
     """Benchmark word prediction speed."""
-    from backend.word_prediction import WordPredictor
+    from backend.prediction.word_predictor import WordPredictor
 
     predictor = WordPredictor()
 

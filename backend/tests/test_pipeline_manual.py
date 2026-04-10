@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 import cv2
 import time
-from backend.prediction_engine import PredictionEngine
+from backend.prediction.realtime_prediction_engine import PredictionEngine
 
 
 def test_pipeline_live():

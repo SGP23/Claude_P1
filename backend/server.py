@@ -39,7 +39,7 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from models.landmark_model import LandmarkClassifier, extract_landmark_features
 from backend.models.disambiguation import GeometricDisambiguator
-from backend.word_prediction import WordPredictor
+from backend.prediction.word_predictor import WordPredictor
 
 # ─── Disambiguation & Word Prediction ────────────────────
 DISAMBIGUATOR = GeometricDisambiguator()
