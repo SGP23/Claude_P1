@@ -106,7 +106,6 @@ npm run dev
 
 ## Contributors
 - **Sundari Pathak** — Backend architecture, ML model training, and prediction pipeline design.
-- **Alnoor Rajesh Charaniya** — Frontend architecture, UI/UX implementation, and documentation support.
 
 ## License
 MIT License

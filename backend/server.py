@@ -15,6 +15,7 @@ Run:
 
 import os
 import sys
+from pathlib import Path
 import time
 import base64
 import logging
@@ -34,8 +35,9 @@ from fastapi.responses import JSONResponse
 import socketio
 
 # ─── Project root ────────────────────────────────────────
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, PROJECT_ROOT)
+BASE_DIR = Path(__file__).resolve().parent          # backend/
+PROJECT_ROOT = BASE_DIR.parent                      # repo root
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from models.landmark_model import LandmarkClassifier, extract_landmark_features
 from backend.models.disambiguation import GeometricDisambiguator
@@ -218,7 +220,7 @@ def get_hand_detector():
             RunningMode,
         )
 
-        model_path = os.path.join(PROJECT_ROOT, "models", "hand_landmarker.task")
+        model_path = str(PROJECT_ROOT / "models" / "hand_landmarker.task")
         if not os.path.exists(model_path):
             logger.error(f"Hand landmarker model not found: {model_path}")
             return None
@@ -338,24 +340,27 @@ def load_model() -> bool:
     start = time.time()
 
     # Try landmark model first
-    landmark_model_path = os.path.join(PROJECT_ROOT, "landmark_classifier.pt")
-    landmark_labels_path = os.path.join(PROJECT_ROOT, "landmark_class_labels.txt")
+    landmark_model_path = PROJECT_ROOT / "landmark_classifier.pt"
+    landmark_labels_path = PROJECT_ROOT / "landmark_class_labels.txt"
     
     # Fallback to CNN model if landmark model not found
-    cnn_model_path = os.path.join(PROJECT_ROOT, "sign_language_cnn_trained.pt")
-    cnn_labels_path = os.path.join(PROJECT_ROOT, "class_labels.txt")
+    cnn_model_path = PROJECT_ROOT / "sign_language_cnn_trained.pt"
+    cnn_labels_path = PROJECT_ROOT / "class_labels.txt"
 
-    if os.path.exists(landmark_model_path):
+    logger.info(f"Looking for landmark model at: {landmark_model_path}")
+    print(f"MODEL SEARCH: landmark={landmark_model_path} exists={landmark_model_path.exists()}", flush=True)
+    if landmark_model_path.exists():
         model_path = landmark_model_path
-        labels_path = landmark_labels_path if os.path.exists(landmark_labels_path) else cnn_labels_path
+        labels_path = landmark_labels_path if landmark_labels_path.exists() else cnn_labels_path
         MODEL_TYPE = "landmark"
-    elif os.path.exists(cnn_model_path):
+    elif cnn_model_path.exists():
         logger.warning("Landmark model not found, falling back to CNN model")
         model_path = cnn_model_path
         labels_path = cnn_labels_path
         MODEL_TYPE = "cnn"
     else:
         logger.error(f"No model file found. Expected: {landmark_model_path}")
+        print(f"MODEL LOAD FAILED: No model file found at {landmark_model_path}", flush=True)
         return False
 
     try:
@@ -377,11 +382,12 @@ def load_model() -> bool:
             num_classes = state_dict[final_keys[-1]].shape[0]
     except Exception as e:
         logger.error(f"Failed to load model weights: {e}")
+        print(f"MODEL LOAD FAILED: {e}", flush=True)
         return False
 
     # Load class labels if not already loaded from checkpoint
     if not CLASS_NAMES:
-        if os.path.exists(labels_path):
+        if labels_path.exists():
             with open(labels_path, "r", encoding="utf-8") as f:
                 CLASS_NAMES = [line.strip() for line in f if line.strip()]
             if len(CLASS_NAMES) != num_classes:
@@ -407,6 +413,7 @@ def load_model() -> bool:
     logger.info(
         f"{MODEL_TYPE.upper()} model loaded: {num_classes} classes on {DEVICE} in {MODEL_LOAD_TIME:.2f}s"
     )
+    print(f"MODEL LOADED OK: {num_classes} classes, device={DEVICE}", flush=True)
     return True
 
 

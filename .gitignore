@@ -18,6 +18,9 @@ venv/
 *.pth
 *.h5
 *.hdf5
+# Allow specific model files required for deployment
+!landmark_classifier.pt
+!landmark_class_labels.txt
 
 # Training data
 *.npz
@@ -25,6 +28,8 @@ data/
 
 # MediaPipe task files
 *.task
+# Allow hand landmarker needed at runtime
+!models/hand_landmarker.task
 
 # Node
 node_modules/
