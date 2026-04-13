@@ -14,6 +14,13 @@ Run:
 """
 
 import os
+
+# --- Headless mode for server deployment (Render, etc.) -----
+# Must be set BEFORE importing mediapipe or opencv
+os.environ.setdefault("MEDIAPIPE_DISABLE_GPU", "1")
+os.environ.setdefault("MESA_GL_VERSION_OVERRIDE", "3.3")
+os.environ.setdefault("LIBGL_ALWAYS_SOFTWARE", "1")
+os.environ.setdefault("PYOPENGL_PLATFORM", "egl")
 import sys
 from pathlib import Path
 import time
