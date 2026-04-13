@@ -220,9 +220,20 @@ def get_hand_detector():
             RunningMode,
         )
 
-        model_path = str(PROJECT_ROOT / "models" / "hand_landmarker.task")
-        if not os.path.exists(model_path):
-            logger.error(f"Hand landmarker model not found: {model_path}")
+        # Search multiple locations for hand_landmarker.task
+        search_paths = [
+            PROJECT_ROOT / "models" / "hand_landmarker.task",
+            BASE_DIR / "models" / "hand_landmarker.task",
+            Path.cwd() / "models" / "hand_landmarker.task",
+        ]
+        model_path = None
+        for candidate in search_paths:
+            if candidate.exists():
+                model_path = str(candidate)
+                break
+        if model_path is None:
+            logger.error(f"Hand landmarker model not found in: {[str(p) for p in search_paths]}")
+            print(f"HAND DETECTOR FAILED: not found in {[str(p) for p in search_paths]}", flush=True)
             return None
         options = HandLandmarkerOptions(
             base_options=BaseOptions(model_asset_path=model_path),
@@ -232,7 +243,7 @@ def get_hand_detector():
             min_hand_presence_confidence=MIN_HAND_PRESENCE_CONF,
         )
         HAND_DETECTOR = HandLandmarker.create_from_options(options)
-        logger.info("MediaPipe HandLandmarker loaded")
+        logger.info(f"MediaPipe HandLandmarker loaded from {model_path}")
     return HAND_DETECTOR
 
 
@@ -582,9 +593,15 @@ async def predict_frame(sid, data):
     
     Uses temporal smoothing for stable predictions across frames.
     Always returns the best predicted letter (never UNKNOWN_GESTURE for valid hands).
+    ALWAYS emits a 'prediction' event back to the client.
     """
     try:
         if not data or "frame" not in data:
+            await sio.emit("prediction", {
+                "letter": None, "confidence": 0.0,
+                "hand_detected": False, "is_stable": False,
+                "error": "No frame data received",
+            }, to=sid)
             return
 
         frame_b64 = data["frame"]
@@ -598,6 +615,11 @@ async def predict_frame(sid, data):
         nparr = np.frombuffer(frame_data, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         if frame is None:
+            await sio.emit("prediction", {
+                "letter": None, "confidence": 0.0,
+                "hand_detected": False, "is_stable": False,
+                "error": "Failed to decode frame",
+            }, to=sid)
             return
 
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -632,12 +654,13 @@ async def predict_frame(sid, data):
         await sio.emit("prediction", response, to=sid)
     except Exception as e:
         logger.error(f"Prediction error: {e}")
+        print(f"PREDICT_FRAME ERROR: {e}", flush=True)
         await sio.emit(
             "prediction",
             {
                 "letter": None,
                 "confidence": 0.0,
-                "error": "Prediction failed",
+                "error": str(e),
                 "hand_detected": False,
                 "is_stable": False,
             },
