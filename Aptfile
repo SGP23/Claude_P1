@@ -1,6 +1,6 @@
-libgles2
-libegl1
-libgl1
+libgles2-mesa
+libegl1-mesa
+libgl1-mesa-glx
 libglvnd0
 libglib2.0-0
 libx11-6
